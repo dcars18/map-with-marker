@@ -1,0 +1,19 @@
+PODS:
+  - Gloss (1.2.1)
+  - GoogleMaps (2.2.0):
+    - GoogleMaps/Maps (= 2.2.0)
+  - GoogleMaps/Base (2.2.0)
+  - GoogleMaps/Maps (2.2.0):
+    - GoogleMaps/Base
+
+DEPENDENCIES:
+  - Gloss
+  - GoogleMaps
+
+SPEC CHECKSUMS:
+  Gloss: 9ab33b8ede01e4232571d43a6bf9259b85d1de69
+  GoogleMaps: 104c418d61ab8a05dff06ed0784c25ea9d37da45
+
+PODFILE CHECKSUM: 26e18bf512c9a2b270fd2047f109d0b1f5aa30cb
+
+COCOAPODS: 1.2.0
