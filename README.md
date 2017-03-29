@@ -1,12 +1,9 @@
-Google Maps SDK for iOS Sample: Adding a Map with a Marker
-==========================================================
+Grouper App for CS499
+=====================
 
-This sample goes hand in hand with a tutorial for the Google Maps SDK for iOS:
-[Adding a Map with a Marker](https://developers.google.com/maps/documentation/ios-sdk/map-with-marker).
-Follow the tutorial for a quick guide to using the SDK.
+This app was built off of the Google map with marker tutorial and as such falls under the Apache 2.0 License.
 
-License
--------
 
-Please refer to the [LICENSE](https://github.com/googlemaps/maps-sdk-for-ios-samples/blob/master/LICENSE.txt) 
-at the root of this repo.
+To build this program simply clone repository, go to the directory in your local machine and run 'pods install'. Then open Swift editor of choice and pick this project to open and build.
+
+For this app to properly work also must have CS498 Node Server Project installed and running on local machine, along with a MongoDB database under the name mydb.
