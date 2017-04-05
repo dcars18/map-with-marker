@@ -15,12 +15,19 @@
 
 import UIKit
 import GoogleMaps
-import Gloss
+import FacebookCore
 
 struct Event {
     let _id: String
     let marker: GMSMarker
 }
+
+
+let accessToken = AccessToken.current
+var userEmail = ""
+var eventList = [Event]()
+
+var baseURL = "http://bloodroot.cs.uky.edu:3000/"
 
 class ViewController: UIViewController {
 
@@ -31,13 +38,14 @@ class ViewController: UIViewController {
 //    let camera = GMSCameraPosition.camera(withLatitude: -33.86, longitude: 151.20, zoom: 6.0)
 //    let mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
 //    view = mapView
-    
 
-    let array = getAllEvents()
+
+    eventList = getAllEvents()
 
   }
     
     override func viewDidLoad(){
+        
         super.viewDidLoad()
         //Code for adding a button to view
         let button = UIButton(frame: CGRect(x: 230, y: 20, width: 110, height: 50))
@@ -52,6 +60,27 @@ class ViewController: UIViewController {
         addButton.setTitle("Join Event", for: .normal)
         addButton.addTarget(self, action: #selector(addUserButtonTapped(button:)), for: .touchUpInside)
         self.view.addSubview(addButton)
+
+        //Use facebook graph api to get email which is primary key, store in global variable
+        let params = ["fields" : "email, name"]
+        let graphRequest = GraphRequest(graphPath: "me", parameters: params)
+        graphRequest.start {
+            (urlResponse, requestResult) in
+            
+            switch requestResult {
+            case .failed(let error):
+                print("error in graph request:", error)
+                break
+            case .success(let graphResponse):
+                if let responseDictionary = graphResponse.dictionaryValue {
+                    
+                    //print(responseDictionary["name"])
+                    //print(responseDictionary["email"])
+                    userEmail = responseDictionary["email"] as! String
+                    
+                }
+            }
+        }
         
     }
 
@@ -63,7 +92,7 @@ class ViewController: UIViewController {
         view = mapView
 
         var temp = [Event]()
-        self.getJson(service: "http://localhost:3000/eventServices/getAllEvents") {response in
+        self.getJson(service: "http://bloodroot.cs.uky.edu:3000/eventServices/getAllEvents") {response in
             //print(response)
             DispatchQueue.main.async {
                 for event in response
@@ -123,11 +152,12 @@ class ViewController: UIViewController {
     
     func createButtonTapped(button: UIButton)
     {
-        getAllEvents()
+        eventList = getAllEvents()
+        print(eventList)
     }
     
     func addUser(){
-        self.sendJson(service: "http://localhost:3000/userServices/addUserToEvent"){ response in
+        self.sendJson(service: "http://bloodroot.cs.uky.edu:3000/userServices/addUserToEvent"){ response in
             print(response)
         }
     }

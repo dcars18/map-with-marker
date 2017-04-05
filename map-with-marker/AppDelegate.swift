@@ -15,6 +15,7 @@
 
 import UIKit
 import GoogleMaps
+import FacebookCore
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -23,9 +24,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+    SDKApplicationDelegate.shared.application(application, didFinishLaunchingWithOptions: launchOptions)
     GMSServices.provideAPIKey("AIzaSyAPkGnqLfbExTQkNbdSYR1Mrv_kyNYwcU0")
     return true
   }
+    
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        AppEventsLogger.activate(application)
+    }
+    
+    public func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool
+    {
+        return SDKApplicationDelegate.shared.application(app, open: url, options: options)
+    }
 
 }
 
