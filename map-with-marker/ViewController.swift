@@ -25,11 +25,14 @@ struct Event {
 
 let accessToken = AccessToken.current
 var userEmail = ""
+var usersName = ""
 var eventList = [Event]()
+var tappedMarker = ""
+var longPressedCoord = CLLocationCoordinate2D()
 
 var baseURL = "http://bloodroot.cs.uky.edu:3000/"
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, GMSMapViewDelegate {
 
   override func loadView() {
     
@@ -40,7 +43,7 @@ class ViewController: UIViewController {
 //    view = mapView
 
 
-    eventList = getAllEvents()
+    getAllEvents()
 
   }
     
@@ -77,18 +80,19 @@ class ViewController: UIViewController {
                     //print(responseDictionary["name"])
                     //print(responseDictionary["email"])
                     userEmail = responseDictionary["email"] as! String
-                    
+                    usersName = responseDictionary["name"] as! String
                 }
             }
         }
         
     }
 
-    func getAllEvents() -> [Event]
+    func getAllEvents()
     {
         //Reset Map stuff
         let camera = GMSCameraPosition.camera(withLatitude: -33.86, longitude: 151.20, zoom: 6.0)
         let mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
+        mapView.delegate = self
         view = mapView
 
         var temp = [Event]()
@@ -119,9 +123,9 @@ class ViewController: UIViewController {
                     temp.append(event)
                 }
                 self.viewDidLoad()
+                eventList = temp
             }
         }
-        return temp
     }
     
     func getJson(service: String, completion: @escaping ([Dictionary<String,Any>])->Void)
@@ -152,13 +156,22 @@ class ViewController: UIViewController {
     
     func createButtonTapped(button: UIButton)
     {
-        eventList = getAllEvents()
-        print(eventList)
+        getAllEvents()
+        //print(eventList)
     }
     
     func addUser(){
-        self.sendJson(service: "http://bloodroot.cs.uky.edu:3000/userServices/addUserToEvent"){ response in
-            print(response)
+        if(tappedMarker != ""){
+            
+            let json: [String: Any] = ["eventID": tappedMarker, "email": userEmail, "name": usersName]
+            self.sendJson(service: "http://bloodroot.cs.uky.edu:3000/userServices/addUserToEvent", json: json){ response in
+                DispatchQueue.main.async {
+
+                }
+            }
+            let alert = UIAlertController(title: "Success", message: "Successfully Added to Event", preferredStyle: UIAlertControllerStyle.alert)
+            alert.addAction(UIAlertAction(title: "Click", style: UIAlertActionStyle.default, handler: nil))
+            self.present(alert, animated: true, completion: nil)
         }
     }
     
@@ -167,11 +180,9 @@ class ViewController: UIViewController {
         addUser()
     }
     
-    func sendJson(service: String, completion: @escaping ([String:Any])->Void)
+    func sendJson(service: String, json: [String: Any], completion: @escaping ([[String:Any]])->Void)
     {
         // prepare json data
-        let json: [String: Any] = ["eventID": "58d50ff3cb138032771b91cc",
-                                   "email": "erin.combs@uky.edu", "name": "Erin Combs", "eventDate": "03-24-2017"]
         let jsonData = try? JSONSerialization.data(withJSONObject: json)
         
         let url = URL(string: service)
@@ -189,9 +200,9 @@ class ViewController: UIViewController {
                 return
             }
             let responseJSON = try? JSONSerialization.jsonObject(with: data, options: [])
-            if let responseJSON = responseJSON as? [String: Any] {
-                print(responseJSON)
-            completion(responseJSON)
+            if let newJson = responseJSON as? [[String: Any]] {
+                print(newJson)
+                completion(newJson)
             }
         }
         
@@ -199,5 +210,53 @@ class ViewController: UIViewController {
         
     }
 
-}
+    func mapView(_ mapView: GMSMapView, didTap marker: GMSMarker) -> Bool {
+        for event in eventList {
+            if(event.marker == marker){
+                tappedMarker = event._id
+            }
+        }
+        return false
+    }
+    
+    func mapView(_ mapView: GMSMapView, didTapInfoWindowOf marker: GMSMarker) {
+        //Create Json right before sending
+        let json: [String: Any] = ["eventID": tappedMarker]
+        self.sendJson(service: "http://bloodroot.cs.uky.edu:3000/userServices/getAllUsersForEvent", json: json){ response in
+            DispatchQueue.main.async{
+                //print(response)
+                self.performSegue(withIdentifier: "eventDetailsSegue", sender: nil)
+            }
+        }
+    }
+    
+    func mapView(_ mapView: GMSMapView, didLongPressAt coordinate: CLLocationCoordinate2D) {
+        print("didLongPressAt")
+        DispatchQueue.main.async{
+            longPressedCoord = coordinate
+            self.performSegue(withIdentifier: "createEventSegue", sender: nil)
+        }
 
+    }
+    
+    
+    //Prepare for segues to event details view and create event view...
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        if segue.identifier == "eventDetailsSegue" {
+            
+            if let toViewController = segue.destination as? EventDetailsViewController {
+                print("Prepare for Event Details View")
+            }
+        }
+        
+        else if segue.identifier == "createEventSegue" {
+            if let toViewController = segue.destination as? CreateEventViewController {
+                print("Prepare for CreateEvent View")
+                toViewController.coordinate = longPressedCoord
+                toViewController.eventCreator = userEmail
+            }
+        }
+    }
+
+}
