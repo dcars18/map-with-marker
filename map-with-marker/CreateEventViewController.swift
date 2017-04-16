@@ -138,7 +138,7 @@ class CreateEventViewController: UIViewController, UIPickerViewDelegate, UIPicke
             }
             let responseJSON = try? JSONSerialization.jsonObject(with: data, options: [])
             if let newJson = responseJSON as? [[String: Any]] {
-                print(newJson)
+                //print(newJson)
             }
             completion("Success")
         }

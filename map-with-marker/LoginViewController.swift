@@ -7,10 +7,12 @@
 //
 
 import UIKit
+import CoreLocation
 import FacebookLogin
 import FacebookCore
 
-class LoginViewController: UIViewController, LoginButtonDelegate {
+class LoginViewController: UIViewController, LoginButtonDelegate, CLLocationManagerDelegate {
+      var locationManager:CLLocationManager!
 
     func loginButtonDidCompleteLogin(_ loginButton: LoginButton, result: LoginResult) {
         switch result{
@@ -46,5 +48,33 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
         view.addSubview(loginButton)
     }
     
+    //Prepare for segues to event details view and create event view...
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        if segue.identifier == "postLoginSegue" {
+            if let toViewController = segue.destination as? ViewController {
+                print("Prepare for Main View")
+                
+                    
+//                self.determineCurrentLocation(){ response in
+//                        print("\(response.latitude), \(response.longitude)")
+//                        toViewController.userLat = response.latitude
+//                        toViewController.userLong = response.longitude
+//                }
+            }
+        }
+    }
     
+    func determineCurrentLocation(completion: @escaping (CLLocationCoordinate2D)->Void)
+    {
+        locationManager = CLLocationManager()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestAlwaysAuthorization()
+        
+        if CLLocationManager.locationServicesEnabled() {
+            
+            completion((locationManager.location?.coordinate)!)
+        }
+    }
 }

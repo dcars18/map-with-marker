@@ -16,12 +16,12 @@
 import UIKit
 import GoogleMaps
 import FacebookCore
+import CoreLocation
 
 struct Event {
     let _id: String
     let marker: GMSMarker
 }
-
 
 let accessToken = AccessToken.current
 var userEmail = ""
@@ -29,20 +29,23 @@ var usersName = ""
 var eventList = [Event]()
 var tappedMarker = ""
 var longPressedCoord = CLLocationCoordinate2D()
+var attendingList = [[String: Any]]()
 
-var baseURL = "http://bloodroot.cs.uky.edu:3000/"
+var baseURL = "http://bloodroot.cs.uky.edu:3000"
 
-class ViewController: UIViewController, GMSMapViewDelegate {
-
-  override func loadView() {
+class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDelegate {
+  
+  var userLat = 0.0
+  var userLong = 0.0
+  var locationManager:CLLocationManager!
     
-    // Create a GMSCameraPosition that tells the map to display the
-    // coordinate -33.86,151.20 at zoom level 6.
-//    let camera = GMSCameraPosition.camera(withLatitude: -33.86, longitude: 151.20, zoom: 6.0)
-//    let mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
-//    view = mapView
-
-
+  @IBOutlet weak var toolbar: UIToolbar!
+  @IBOutlet weak var refreshButton: UIToolbar!
+  @IBOutlet weak var addUserButton: UIToolbar!
+  
+  override func loadView() {
+    super.loadView()
+    determineCurrentLocation()
     getAllEvents()
 
   }
@@ -50,19 +53,25 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     override func viewDidLoad(){
         
         super.viewDidLoad()
+        
+        if(tappedMarker != "")
+        {
+            addUserButton.isUserInteractionEnabled = true
+        }
+        
         //Code for adding a button to view
-        let button = UIButton(frame: CGRect(x: 230, y: 20, width: 110, height: 50))
-        button.backgroundColor = UIColor.gray
-        button.setTitle("Refresh", for: .normal)
-        button.addTarget(self, action: #selector(createButtonTapped(button:)), for: .touchUpInside)
-        self.view.addSubview(button)
-        
-        
-        let addButton = UIButton(frame: CGRect(x: 30, y: 20, width: 110, height: 50))
-        addButton.backgroundColor = UIColor.blue
-        addButton.setTitle("Join Event", for: .normal)
-        addButton.addTarget(self, action: #selector(addUserButtonTapped(button:)), for: .touchUpInside)
-        self.view.addSubview(addButton)
+//        let button = UIButton(frame: CGRect(x: 230, y: 20, width: 110, height: 50))
+//        button.backgroundColor = UIColor.gray
+//        button.setTitle("Refresh", for: .normal)
+//        button.addTarget(self, action: #selector(createButtonTapped(button:)), for: .touchUpInside)
+//        self.view.addSubview(button)
+//        
+//        
+//        let addButton = UIButton(frame: CGRect(x: 30, y: 20, width: 110, height: 50))
+//        addButton.backgroundColor = UIColor.blue
+//        addButton.setTitle("Join Event", for: .normal)
+//        addButton.addTarget(self, action: #selector(addUserButtonTapped(button:)), for: .touchUpInside)
+//        self.view.addSubview(addButton)
 
         //Use facebook graph api to get email which is primary key, store in global variable
         let params = ["fields" : "email, name"]
@@ -90,13 +99,17 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     func getAllEvents()
     {
         //Reset Map stuff
-        let camera = GMSCameraPosition.camera(withLatitude: -33.86, longitude: 151.20, zoom: 6.0)
-        let mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
+        let screenSize: CGRect = UIScreen.main.bounds
+        let camera = GMSCameraPosition.camera(withLatitude: self.userLat, longitude: self.userLong, zoom: 10.0)
+        //let mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
+        let mapView = GMSMapView.map(withFrame: CGRect.init(x: 0.0, y: 0.0, width: screenSize.width, height: screenSize.height-45), camera: camera)
         mapView.delegate = self
-        view = mapView
+        self.view.addSubview(mapView)
+        //view = mapView
+        
 
         var temp = [Event]()
-        self.getJson(service: "http://bloodroot.cs.uky.edu:3000/eventServices/getAllEvents") {response in
+        self.getJson(service: "\(baseURL)/eventServices/getAllEvents") {response in
             //print(response)
             DispatchQueue.main.async {
                 for event in response
@@ -166,12 +179,11 @@ class ViewController: UIViewController, GMSMapViewDelegate {
             let json: [String: Any] = ["eventID": tappedMarker, "email": userEmail, "name": usersName]
             self.sendJson(service: "http://bloodroot.cs.uky.edu:3000/userServices/addUserToEvent", json: json){ response in
                 DispatchQueue.main.async {
-
+                    let alert = UIAlertController(title: "Success", message: "Successfully Added to Event", preferredStyle: UIAlertControllerStyle.alert)
+                    alert.addAction(UIAlertAction(title: "Click", style: UIAlertActionStyle.default, handler: nil))
+                    self.present(alert, animated: true, completion: nil)
                 }
             }
-            let alert = UIAlertController(title: "Success", message: "Successfully Added to Event", preferredStyle: UIAlertControllerStyle.alert)
-            alert.addAction(UIAlertAction(title: "Click", style: UIAlertActionStyle.default, handler: nil))
-            self.present(alert, animated: true, completion: nil)
         }
     }
     
@@ -180,7 +192,7 @@ class ViewController: UIViewController, GMSMapViewDelegate {
         addUser()
     }
     
-    func sendJson(service: String, json: [String: Any], completion: @escaping ([[String:Any]])->Void)
+    func sendJson(service: String, json: [String: Any], completion: @escaping (Any)->Void)
     {
         // prepare json data
         let jsonData = try? JSONSerialization.data(withJSONObject: json)
@@ -199,10 +211,12 @@ class ViewController: UIViewController, GMSMapViewDelegate {
                 print(error?.localizedDescription ?? "No data")
                 return
             }
-            let responseJSON = try? JSONSerialization.jsonObject(with: data, options: [])
-            if let newJson = responseJSON as? [[String: Any]] {
-                print(newJson)
-                completion(newJson)
+            if let responseJSON = try? JSONSerialization.jsonObject(with: data, options: []){
+                completion(responseJSON)
+            }
+            else
+            {
+                completion("Not valid JSON/NO Json returned")
             }
         }
         
@@ -216,18 +230,14 @@ class ViewController: UIViewController, GMSMapViewDelegate {
                 tappedMarker = event._id
             }
         }
+        self.addUserButton.isUserInteractionEnabled = true
         return false
     }
     
     func mapView(_ mapView: GMSMapView, didTapInfoWindowOf marker: GMSMarker) {
-        //Create Json right before sending
-        let json: [String: Any] = ["eventID": tappedMarker]
-        self.sendJson(service: "http://bloodroot.cs.uky.edu:3000/userServices/getAllUsersForEvent", json: json){ response in
-            DispatchQueue.main.async{
-                //print(response)
-                self.performSegue(withIdentifier: "eventDetailsSegue", sender: nil)
-            }
-        }
+        DispatchQueue.main.async(execute: {
+            self.performSegue(withIdentifier: "eventDetailsSegue", sender: nil)
+        })
     }
     
     func mapView(_ mapView: GMSMapView, didLongPressAt coordinate: CLLocationCoordinate2D) {
@@ -238,7 +248,12 @@ class ViewController: UIViewController, GMSMapViewDelegate {
         }
 
     }
-    
+
+    func mapView(_ mapView: GMSMapView, idleAt position: GMSCameraPosition) {
+        userLat = position.target.latitude
+        userLong = position.target.longitude
+        //print("\(userLat), \(userLong)")
+    }
     
     //Prepare for segues to event details view and create event view...
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -247,6 +262,8 @@ class ViewController: UIViewController, GMSMapViewDelegate {
             
             if let toViewController = segue.destination as? EventDetailsViewController {
                 print("Prepare for Event Details View")
+                toViewController.eventID = tappedMarker
+                toViewController.currentUser = userEmail
             }
         }
         
@@ -258,5 +275,27 @@ class ViewController: UIViewController, GMSMapViewDelegate {
             }
         }
     }
+    
+    func determineCurrentLocation()
+    {
+        locationManager = CLLocationManager()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestAlwaysAuthorization()
+        
+        if CLLocationManager.locationServicesEnabled() {
+            
+            userLong = Double((locationManager.location?.coordinate.longitude)!)
+            userLat = Double((locationManager.location?.coordinate.latitude)!)
+            
+        }
+    }
+    @IBAction func refreshButtonPressed(_ sender: Any) {
+        getAllEvents()
+    }
 
+    @IBAction func addUserButtonPressed(_ sender: Any) {
+        addUser()
+    }
+    
 }
