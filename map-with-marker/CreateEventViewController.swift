@@ -3,13 +3,26 @@
 //  map-with-marker
 //
 //  Created by David Carson on 4/15/17.
-//  Copyright © 2017 William French. All rights reserved.
 //
 
 import UIKit
 import GoogleMaps
 
-class CreateEventViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource{
+//Adds ability to tap anywhere not on the keyboard to exit text entry...
+//Add function to any view controller to add functionality
+extension UIViewController {
+    func hideKeyboardWhenTappedAround() {
+        let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(UIViewController.dismissKeyboard))
+        tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
+    }
+    
+    func dismissKeyboard() {
+        view.endEditing(true)
+    }
+}
+
+class CreateEventViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource, UITextFieldDelegate{
     
     @IBOutlet weak var eventName: UITextField!
     
@@ -28,10 +41,14 @@ class CreateEventViewController: UIViewController, UIPickerViewDelegate, UIPicke
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.hideKeyboardWhenTappedAround()
 
         // Connect data:
         self.eventType.delegate = self
         self.eventType.dataSource = self
+        
+        self.eventName.delegate = self
+        self.eventDescription.delegate = self
         
         //These values will populate our pickerview
         pickerData = ["Social", "Sports", "Gaming"]
@@ -145,6 +162,12 @@ class CreateEventViewController: UIViewController, UIPickerViewDelegate, UIPicke
         
         task.resume()
         
+    }
+    
+    //Allows users to exit text entry with press of return key
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        self.view.endEditing(true)
+        return false
     }
     
 }

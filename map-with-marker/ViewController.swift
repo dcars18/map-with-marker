@@ -128,7 +128,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
                     
                     marker.position = CLLocationCoordinate2D(latitude: event["lat"] as! CLLocationDegrees, longitude: event["long"] as! CLLocationDegrees)
                     marker.title = event["eventName"] as! String?
-                    marker.snippet = event["eventDescription"] as! String?
+                    //marker.snippet = event["eventDescription"] as! String?
                     marker.map = mapView
                     
                     let event = Event(_id: event["_id"] as! String, marker: marker)
