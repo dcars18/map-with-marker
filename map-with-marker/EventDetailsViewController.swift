@@ -34,15 +34,17 @@ class EventDetailsViewController: UIViewController, UITableViewDelegate, UITable
         
         super.viewDidLoad()
         
+        
         self.attendingTable.delegate = self
         self.attendingTable.dataSource = self
         
         getAllDataForEvent()
     }
     
+    //Performs 2 Web Service Calls to get data for populating table and event details
     func getAllDataForEvent(){
+        
         let json: [String: Any] = ["eventID": eventID]
-        //print(json)
         
         self.sendJson(service: "\(baseURL)/eventServices/getAllEventInfo", json: json){ response in
             
@@ -93,11 +95,13 @@ class EventDetailsViewController: UIViewController, UITableViewDelegate, UITable
                 self.attendingData = response as! [[String:Any]]
                 //Load data into table view
                 self.attendingTable.reloadData()
+                
             }
         }
     }
     
-    
+    //Function that sends JSON as a POST HTTP request. Can either return JSON or a string
+    //Some API calls return nothing some return data after post so unwrap accordingly
     func sendJson(service: String, json: [String: Any], completion: @escaping (Any)->Void)
     {
         // prepare json data
@@ -152,6 +156,18 @@ class EventDetailsViewController: UIViewController, UITableViewDelegate, UITable
         
         // Returning the cell
         return cell
+    }
+    
+    //Make the title for the table the event creator's email
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        for event in eventData
+        {
+            if(event["eventCreator"] != nil)
+            {
+                return "Creator: \(event["eventCreator"] as! String)"
+            }
+        }
+        return "Sorry there's a problem getting Event Creator!"
     }
     
     @IBAction func deleteAction(_ sender: Any) {
