@@ -58,20 +58,6 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         {
             addUserButton.isUserInteractionEnabled = true
         }
-        
-        //Code for adding a button to view
-//        let button = UIButton(frame: CGRect(x: 230, y: 20, width: 110, height: 50))
-//        button.backgroundColor = UIColor.gray
-//        button.setTitle("Refresh", for: .normal)
-//        button.addTarget(self, action: #selector(createButtonTapped(button:)), for: .touchUpInside)
-//        self.view.addSubview(button)
-//        
-//        
-//        let addButton = UIButton(frame: CGRect(x: 30, y: 20, width: 110, height: 50))
-//        addButton.backgroundColor = UIColor.blue
-//        addButton.setTitle("Join Event", for: .normal)
-//        addButton.addTarget(self, action: #selector(addUserButtonTapped(button:)), for: .touchUpInside)
-//        self.view.addSubview(addButton)
 
         //Use facebook graph api to get email which is primary key, store in global variable
         let params = ["fields" : "email, name"]
@@ -100,13 +86,12 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     {
         //Reset Map stuff
         let screenSize: CGRect = UIScreen.main.bounds
-        let camera = GMSCameraPosition.camera(withLatitude: self.userLat, longitude: self.userLong, zoom: 10.0)
+        let camera = GMSCameraPosition.camera(withLatitude: self.userLat, longitude: self.userLong, zoom: 18.0)
         //let mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
         let mapView = GMSMapView.map(withFrame: CGRect.init(x: 0.0, y: 0.0, width: screenSize.width, height: screenSize.height-45), camera: camera)
         mapView.delegate = self
         self.view.addSubview(mapView)
         //view = mapView
-        
 
         var temp = [Event]()
         self.getJson(service: "\(baseURL)/eventServices/getAllEvents") {response in
@@ -114,26 +99,36 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
             DispatchQueue.main.async {
                 for event in response
                 {
-                    let marker = GMSMarker()
-                    let i = event["eventType"] as? Int
-                    if(i == 2){
-                        marker.icon = GMSMarker.markerImage(with: .black)
-                    }
-                    else if(i == 3){
-                        marker.icon = GMSMarker.markerImage(with: .red)
-                    }
-                    else{
-                        marker.icon = GMSMarker.markerImage(with: .cyan)
-                    }
+                    let dateString = event["eventEndDate"] as! String
+                    let date = Date()
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = "MMM dd, yyyy, hh:mm:ss a"
                     
-                    marker.position = CLLocationCoordinate2D(latitude: event["lat"] as! CLLocationDegrees, longitude: event["long"] as! CLLocationDegrees)
-                    marker.title = event["eventName"] as! String?
-                    //marker.snippet = event["eventDescription"] as! String?
-                    marker.map = mapView
+                    let dateObj = dateFormatter.date(from: dateString)
+                    if(date < dateObj!)
+                    {
                     
-                    let event = Event(_id: event["_id"] as! String, marker: marker)
+                        let marker = GMSMarker()
+                        let i = event["eventType"] as? Int
+                        if(i == 2){
+                            marker.icon = GMSMarker.markerImage(with: .black)
+                        }
+                        else if(i == 3){
+                            marker.icon = GMSMarker.markerImage(with: .red)
+                        }
+                        else{
+                            marker.icon = GMSMarker.markerImage(with: .cyan)
+                        }
                     
-                    temp.append(event)
+                        marker.position = CLLocationCoordinate2D(latitude: event["lat"] as! CLLocationDegrees, longitude: event["long"] as! CLLocationDegrees)
+                        marker.title = event["eventName"] as! String?
+                        //marker.snippet = event["eventDescription"] as! String?
+                        marker.map = mapView
+                    
+                        let event = Event(_id: event["_id"] as! String, marker: marker)
+                    
+                        temp.append(event)
+                    }
                 }
                 self.viewDidLoad()
                 eventList = temp
@@ -179,11 +174,29 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
             let json: [String: Any] = ["eventID": tappedMarker, "email": userEmail, "name": usersName]
             self.sendJson(service: "http://bloodroot.cs.uky.edu:3000/userServices/addUserToEvent", json: json){ response in
                 DispatchQueue.main.async {
-                    let alert = UIAlertController(title: "Success", message: "Successfully Added to Event", preferredStyle: UIAlertControllerStyle.alert)
-                    alert.addAction(UIAlertAction(title: "Click", style: UIAlertActionStyle.default, handler: nil))
-                    self.present(alert, animated: true, completion: nil)
+                    let response2 = response as! [String: Any]
+                    //print(response2["alreadyJoined"] as! Bool)
+                    if(response2["alreadyJoined"] as! Bool == false)
+                    {
+                        let alert = UIAlertController(title: "Success", message: "Successfully Added to Event", preferredStyle: UIAlertControllerStyle.alert)
+                        alert.addAction(UIAlertAction(title: "Click", style: UIAlertActionStyle.default, handler: nil))
+                        self.present(alert, animated: true, completion: nil)
+                    }
+                    else
+                    {
+                        let alert = UIAlertController(title: "Error", message: "You're already attending this event!!", preferredStyle: UIAlertControllerStyle.alert)
+                        alert.addAction(UIAlertAction(title: "Click", style: UIAlertActionStyle.default, handler: nil))
+                        self.present(alert, animated: true, completion: nil)
+                    }
+                    
                 }
             }
+        }
+        else
+        {
+            let alert = UIAlertController(title: "Error", message: "You need to click on an event to join!", preferredStyle: UIAlertControllerStyle.alert)
+            alert.addAction(UIAlertAction(title: "Click", style: UIAlertActionStyle.default, handler: nil))
+            self.present(alert, animated: true, completion: nil)
         }
     }
     
@@ -274,6 +287,13 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
                 toViewController.eventCreator = userEmail
             }
         }
+        
+        else if segue.identifier == "createEventWithButtonSegue"{
+            if let toViewController = segue.destination as? CreateEventWithButtonViewController {
+                print("Prepare for CreateEventWithButton View")
+                toViewController.eventCreator = userEmail
+            }
+        }
     }
     
     func determineCurrentLocation()
@@ -297,5 +317,6 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
     @IBAction func addUserButtonPressed(_ sender: Any) {
         addUser()
     }
+    
     
 }

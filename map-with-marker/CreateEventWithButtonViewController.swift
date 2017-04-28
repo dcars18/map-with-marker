@@ -1,48 +1,42 @@
 //
-//  createEventViewController.swift
+//  CreateEventWithButtonViewController.swift
 //  map-with-marker
 //
-//  Created by David Carson on 4/15/17.
+//  Created by David Carson on 4/19/17.
+//  Copyright © 2017 William French. All rights reserved.
 //
 
 import UIKit
 import GoogleMaps
 
-//Adds ability to tap anywhere not on the keyboard to exit text entry...
-//Add function to any view controller to add functionality
-extension UIViewController {
-    func hideKeyboardWhenTappedAround() {
-        let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(UIViewController.dismissKeyboard))
-        tap.cancelsTouchesInView = false
-        view.addGestureRecognizer(tap)
-    }
-    
-    func dismissKeyboard() {
-        view.endEditing(true)
-    }
-}
 
-class CreateEventViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource, UITextFieldDelegate{
-    
+class CreateEventWithButtonViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate, UITextFieldDelegate {
+
     @IBOutlet weak var eventName: UITextField!
-    
     @IBOutlet weak var eventDescription: UITextField!
+    @IBOutlet weak var eventAddress: UITextField!
+    
+    @IBOutlet weak var eventType: UIPickerView!
     
     @IBOutlet weak var startTime: UIDatePicker!
     @IBOutlet weak var endTime: UIDatePicker!
-    @IBOutlet weak var eventType: UIPickerView!
     @IBOutlet weak var createButton: UIButton!
     
-    var eventCreator = ""
-    var coordinate = CLLocationCoordinate2D()
+    let geocoder = CLGeocoder()
+    
     
     var pickerData: [String] = [String]()
     var currentlyPicked = 0
     
+    var eventCreator = ""
+    var coordinate = CLLocationCoordinate2D()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.hideKeyboardWhenTappedAround()
-
+        
+        coordinate.latitude = 0.0
+        coordinate.longitude = 0.0
         // Connect data:
         self.eventType.delegate = self
         self.eventType.dataSource = self
@@ -78,19 +72,63 @@ class CreateEventViewController: UIViewController, UIPickerViewDelegate, UIPicke
         currentlyPicked = row+1
     }
     
-    @IBAction func createEvent(_ sender: Any) {
+    func sendJson(service: String, json: [String: Any], completion: @escaping (String)->Void)
+    {
+        // prepare json data
+        let jsonData = try? JSONSerialization.data(withJSONObject: json)
         
-
+        let url = URL(string: service)
+        var request = URLRequest(url: url!)
+        request.httpMethod = "POST"
         
-        let validator = validateCreateEventData()
+        // insert json data to the request
+        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        request.httpBody = jsonData
+        
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data, error == nil else {
+                print(error?.localizedDescription ?? "No data")
+                return
+            }
+            let responseJSON = try? JSONSerialization.jsonObject(with: data, options: [])
+            if let newJson = responseJSON as? [[String: Any]] {
+                //print(newJson)
+            }
+            completion("Success")
+        }
+        
+        task.resume()
+        
+    }
+    
+    @IBAction func createButtonPressed(_ sender: Any) {
+        var validator = validateCreateEventData()
         if(validator.isValid)
         {
-        self.sendJson(service: "http://bloodroot.cs.uky.edu:3000/eventServices/createEvent", json: validator.userEvent){ response in
+            geocoder.geocodeAddressString(eventAddress.text!){ (placemarks, error) in
+                if(error == nil)
+                {
+                    validator.userEvent["lat"] = placemarks?.first?.location?.coordinate.latitude
+                    validator.userEvent["long"] = placemarks?.first?.location?.coordinate.longitude
+                    
+                    //print(validator)
+                    self.sendJson(service: "http://bloodroot.cs.uky.edu:3000/eventServices/createEvent", json: validator.userEvent){ response in
+                            DispatchQueue.main.async {
+                                self.performSegue(withIdentifier: "returnToMapFromCreateButton", sender: nil)
+                            }
+                    }
+                }
+                else
+                {
                     DispatchQueue.main.async {
-                        self.performSegue(withIdentifier: "returnToMap", sender: nil)
+                        let alert = UIAlertController(title: "Oops!", message: "We couldn't find your location! Please make sure you include Country and area code for better results!", preferredStyle: UIAlertControllerStyle.alert)
+                        alert.addAction(UIAlertAction(title: "Click", style: UIAlertActionStyle.default, handler: nil))
+                        self.present(alert, animated: true, completion: nil)
                     }
                 }
             }
+        }
     }
     
     func validateCreateEventData() -> (isValid: Bool, userEvent: [String: Any])
@@ -140,8 +178,6 @@ class CreateEventViewController: UIViewController, UIPickerViewDelegate, UIPicke
                     userEvent["eventEndDate"] = endDateString
                     
                     userEvent["eventType"] = currentlyPicked
-                    userEvent["lat"] = coordinate.latitude
-                    userEvent["long"] = coordinate.longitude
                     userEvent["eventCreator"] = eventCreator
                     return (true, userEvent)
                     
@@ -162,40 +198,9 @@ class CreateEventViewController: UIViewController, UIPickerViewDelegate, UIPicke
     }
     
     
-    func sendJson(service: String, json: [String: Any], completion: @escaping (String)->Void)
-    {
-        // prepare json data
-        let jsonData = try? JSONSerialization.data(withJSONObject: json)
-        
-        let url = URL(string: service)
-        var request = URLRequest(url: url!)
-        request.httpMethod = "POST"
-        
-        // insert json data to the request
-        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
-        request.httpBody = jsonData
-        
-        
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let data = data, error == nil else {
-                print(error?.localizedDescription ?? "No data")
-                return
-            }
-            let responseJSON = try? JSONSerialization.jsonObject(with: data, options: [])
-            if let newJson = responseJSON as? [[String: Any]] {
-                //print(newJson)
-            }
-            completion("Success")
-        }
-        
-        task.resume()
-        
-    }
-    
     //Allows users to exit text entry with press of return key
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         self.view.endEditing(true)
         return false
     }
-    
 }

@@ -14,6 +14,7 @@
 		08E4ED891E946B3000DB04F2 /* FacebookLogin.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08E4ED851E946B3000DB04F2 /* FacebookLogin.framework */; };
 		08E4ED8A1E946B3000DB04F2 /* FacebookShare.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08E4ED861E946B3000DB04F2 /* FacebookShare.framework */; };
 		08F04E0A1EA263D600004878 /* CreateEventViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F04E091EA263D600004878 /* CreateEventViewController.swift */; };
+		08F04E0C1EA7CEF900004878 /* CreateEventWithButtonViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F04E0B1EA7CEF900004878 /* CreateEventWithButtonViewController.swift */; };
 		2E4EC20F7BBE365AD2969A68 /* Pods_map_with_marker.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED7F837DD52B99A0D1C01BA2 /* Pods_map_with_marker.framework */; };
 		E5AA156C1E006EC3005DF256 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AA156B1E006EC3005DF256 /* AppDelegate.swift */; };
 		E5AA156E1E006EC3005DF256 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AA156D1E006EC3005DF256 /* ViewController.swift */; };
@@ -32,6 +33,7 @@
 		08E4ED851E946B3000DB04F2 /* FacebookLogin.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FacebookLogin.framework; path = "../../../../../Library/Developer/Xcode/DerivedData/map-with-marker-edbfylhwjadwxcgpcurccdlmrbvx/Build/Products/Debug-iphonesimulator/FacebookLogin/FacebookLogin.framework"; sourceTree = "<group>"; };
 		08E4ED861E946B3000DB04F2 /* FacebookShare.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FacebookShare.framework; path = "../../../../../Library/Developer/Xcode/DerivedData/map-with-marker-edbfylhwjadwxcgpcurccdlmrbvx/Build/Products/Debug-iphonesimulator/FacebookShare/FacebookShare.framework"; sourceTree = "<group>"; };
 		08F04E091EA263D600004878 /* CreateEventViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreateEventViewController.swift; sourceTree = "<group>"; };
+		08F04E0B1EA7CEF900004878 /* CreateEventWithButtonViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreateEventWithButtonViewController.swift; sourceTree = "<group>"; };
 		0FC092F94040030CF5A9BF75 /* Pods-map-with-marker.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-map-with-marker.release.xcconfig"; path = "Pods/Target Support Files/Pods-map-with-marker/Pods-map-with-marker.release.xcconfig"; sourceTree = "<group>"; };
 		B9A664DE4EDFFFB17D6A8CE5 /* Pods-map-with-marker.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-map-with-marker.debug.xcconfig"; path = "Pods/Target Support Files/Pods-map-with-marker/Pods-map-with-marker.debug.xcconfig"; sourceTree = "<group>"; };
 		E5AA15681E006EC3005DF256 /* map-with-marker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "map-with-marker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -114,6 +116,7 @@
 				E5AA15771E006EC3005DF256 /* Info.plist */,
 				0838276D1E928D5A00C58D33 /* LoginViewController.swift */,
 				08F04E091EA263D600004878 /* CreateEventViewController.swift */,
+				08F04E0B1EA7CEF900004878 /* CreateEventWithButtonViewController.swift */,
 			);
 			path = "map-with-marker";
 			sourceTree = "<group>";
@@ -251,6 +254,7 @@
 				08F04E0A1EA263D600004878 /* CreateEventViewController.swift in Sources */,
 				083C0C1B1EA250580004E819 /* EventDetailsViewController.swift in Sources */,
 				0838276E1E928D5A00C58D33 /* LoginViewController.swift in Sources */,
+				08F04E0C1EA7CEF900004878 /* CreateEventWithButtonViewController.swift in Sources */,
 				E5AA156E1E006EC3005DF256 /* ViewController.swift in Sources */,
 				E5AA156C1E006EC3005DF256 /* AppDelegate.swift in Sources */,
 			);
