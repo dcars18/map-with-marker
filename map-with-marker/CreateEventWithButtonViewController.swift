@@ -31,6 +31,9 @@ class CreateEventWithButtonViewController: UIViewController, UIPickerViewDataSou
     var eventCreator = ""
     var coordinate = CLLocationCoordinate2D()
     
+    //var baseURL = "http://bloodroot.cs.uky.edu:3000"
+    var baseURL = "http://localhost:3000"
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.hideKeyboardWhenTappedAround()
@@ -113,7 +116,7 @@ class CreateEventWithButtonViewController: UIViewController, UIPickerViewDataSou
                     validator.userEvent["long"] = placemarks?.first?.location?.coordinate.longitude
                     
                     //print(validator)
-                    self.sendJson(service: "http://bloodroot.cs.uky.edu:3000/eventServices/createEvent", json: validator.userEvent){ response in
+                    self.sendJson(service: "\(self.baseURL)/eventServices/createEvent", json: validator.userEvent){ response in
                             DispatchQueue.main.async {
                                 self.performSegue(withIdentifier: "returnToMapFromCreateButton", sender: nil)
                             }

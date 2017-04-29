@@ -39,6 +39,9 @@ class CreateEventViewController: UIViewController, UIPickerViewDelegate, UIPicke
     var pickerData: [String] = [String]()
     var currentlyPicked = 0
     
+    //var baseURL = "bloodroot.cs.uky.edu:3000"
+    var baseURL = "localhost:3000"
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.hideKeyboardWhenTappedAround()
@@ -85,7 +88,7 @@ class CreateEventViewController: UIViewController, UIPickerViewDelegate, UIPicke
         let validator = validateCreateEventData()
         if(validator.isValid)
         {
-        self.sendJson(service: "http://bloodroot.cs.uky.edu:3000/eventServices/createEvent", json: validator.userEvent){ response in
+        self.sendJson(service: "http://\(baseURL)/eventServices/createEvent", json: validator.userEvent){ response in
                     DispatchQueue.main.async {
                         self.performSegue(withIdentifier: "returnToMap", sender: nil)
                     }

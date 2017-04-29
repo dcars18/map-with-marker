@@ -31,7 +31,8 @@ var tappedMarker = ""
 var longPressedCoord = CLLocationCoordinate2D()
 var attendingList = [[String: Any]]()
 
-var baseURL = "http://bloodroot.cs.uky.edu:3000"
+//var baseURL = "http://bloodroot.cs.uky.edu:3000"
+var baseURL = "http://localhost:3000"
 
 class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDelegate {
   
@@ -172,7 +173,7 @@ class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDel
         if(tappedMarker != ""){
             
             let json: [String: Any] = ["eventID": tappedMarker, "email": userEmail, "name": usersName]
-            self.sendJson(service: "http://bloodroot.cs.uky.edu:3000/userServices/addUserToEvent", json: json){ response in
+            self.sendJson(service: "\(baseURL)/userServices/addUserToEvent", json: json){ response in
                 DispatchQueue.main.async {
                     let response2 = response as! [String: Any]
                     //print(response2["alreadyJoined"] as! Bool)

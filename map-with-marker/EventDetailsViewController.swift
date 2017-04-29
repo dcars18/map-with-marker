@@ -13,7 +13,8 @@ class EventDetailsViewController: UIViewController, UITableViewDelegate, UITable
 
     @IBOutlet weak var backButton: UIBarButtonItem!
     @IBOutlet weak var deleteButton: UIBarButtonItem!
-    var baseURL = "http://bloodroot.cs.uky.edu:3000"
+    //var baseURL = "http://bloodroot.cs.uky.edu:3000"
+    var baseURL = "http://localhost:3000"
     var eventID = ""
     var eventData = [[String: Any]]()
     var attendingData = [[String: Any]]()
